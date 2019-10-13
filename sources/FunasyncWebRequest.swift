@@ -189,8 +189,16 @@ public class FunasyncWebRequest: NSObject, FunAsyncBaseProtocol {
             subscribedData = data
         }
         if let queue = queue {
-            queue.async {
-                closure(subscribedData)
+            queue.async { [weak self] in
+                guard let self = self else { return }
+                if let subscribedData = subscribedData {
+                    closure(subscribedData)
+                }
+                else if let closure = self.catchClosure {
+                    let error = NSError(domain: "funasync.webrequest.dataerror", code: -1, userInfo: nil)
+                    closure(error)
+                    
+                }
             }
         }
         else {
@@ -218,7 +226,7 @@ public class FunasyncWebRequest: NSObject, FunAsyncBaseProtocol {
             guard let self = self else { return }
             self.data = data
             self.statusCode = statusCode
-            self.error = error
+            self.error = error ?? NSError(domain: NSURLErrorDomain, code: statusCode, userInfo: nil)
             
             if let closure = self.subscribCloure {
                 self.subscribe(closure: closure)
