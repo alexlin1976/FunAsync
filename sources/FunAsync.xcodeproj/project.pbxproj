@@ -7,12 +7,16 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		190E065523560C2E004C2E1B /* URLSession+WebRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 190E065423560C2E004C2E1B /* URLSession+WebRequest.swift */; };
+		190E065823560F98004C2E1B /* HttpClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 190E065723560F98004C2E1B /* HttpClient.swift */; };
 		1970FB2C23537146006A78D2 /* FunasyncWebRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1970FB2823537146006A78D2 /* FunasyncWebRequest.swift */; };
 		1970FB2D23537146006A78D2 /* protocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1970FB2923537146006A78D2 /* protocol.swift */; };
 		1970FB2E23537146006A78D2 /* FunAsync.h in Headers */ = {isa = PBXBuildFile; fileRef = 1970FB2A23537146006A78D2 /* FunAsync.h */; settings = {ATTRIBUTES = (Public, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		190E065423560C2E004C2E1B /* URLSession+WebRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "URLSession+WebRequest.swift"; sourceTree = SOURCE_ROOT; };
+		190E065723560F98004C2E1B /* HttpClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HttpClient.swift; sourceTree = "<group>"; };
 		1970FB1823536FDD006A78D2 /* FunAsync.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = FunAsync.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		1970FB2723537146006A78D2 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = SOURCE_ROOT; };
 		1970FB2823537146006A78D2 /* FunasyncWebRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FunasyncWebRequest.swift; sourceTree = SOURCE_ROOT; };
@@ -31,6 +35,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		190E065623560F83004C2E1B /* Utility */ = {
+			isa = PBXGroup;
+			children = (
+				190E065723560F98004C2E1B /* HttpClient.swift */,
+			);
+			path = Utility;
+			sourceTree = "<group>";
+		};
 		1970FB0E23536FDD006A78D2 = {
 			isa = PBXGroup;
 			children = (
@@ -50,10 +62,12 @@
 		1970FB1A23536FDD006A78D2 /* FunAsync */ = {
 			isa = PBXGroup;
 			children = (
+				190E065623560F83004C2E1B /* Utility */,
 				1970FB2A23537146006A78D2 /* FunAsync.h */,
 				1970FB2823537146006A78D2 /* FunasyncWebRequest.swift */,
 				1970FB2723537146006A78D2 /* Info.plist */,
 				1970FB2923537146006A78D2 /* protocol.swift */,
+				190E065423560C2E004C2E1B /* URLSession+WebRequest.swift */,
 			);
 			path = FunAsync;
 			sourceTree = "<group>";
@@ -139,6 +153,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				1970FB2C23537146006A78D2 /* FunasyncWebRequest.swift in Sources */,
+				190E065523560C2E004C2E1B /* URLSession+WebRequest.swift in Sources */,
+				190E065823560F98004C2E1B /* HttpClient.swift in Sources */,
 				1970FB2D23537146006A78D2 /* protocol.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

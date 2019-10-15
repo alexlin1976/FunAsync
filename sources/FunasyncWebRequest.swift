@@ -8,136 +8,11 @@
 
 import UIKit
 
-public enum RequestMethod: Int {
-    case post
-    case get
-
-    fileprivate func toString() -> String? {
-        switch self {
-        case .post:
-            return "POST"
-        case .get:
-            return "GET"
-        }
-    }
-}
-
-class HttpClient {
-    public static let shared: HttpClient = HttpClient()
-    
-    private func isNumeric(_ value: Any) -> Bool {
-        let numericTypes: [Any.Type] = [Int.self, Int8.self, Int16.self, Int32.self, Int64.self, UInt.self, UInt8.self, UInt16.self, UInt32.self, UInt64.self, Double.self, Float.self, Float32.self, Float64.self, Decimal.self, NSNumber.self, NSDecimalNumber.self]
-        return numericTypes.contains { $0 == Mirror(reflecting: value).subjectType }
-    }
-    
-    private func convert(any value:Any) -> String? {
-        if let value = value as? String {
-            return value
-        }
-        else if isNumeric(value) {
-            return "\(value)"
-        }
-        else {
-            return nil
-        }
-    }
-
-    private func getQueryItems(from params:[String:Any]) -> [URLQueryItem] {
-        var queryItems: [URLQueryItem] = []
-        let _ = params.map {
-            if let value = convert(any: $1) {
-                let item = URLQueryItem(name: $0, value: value)
-                queryItems.append(item)
-            }
-            else if let array = $1 as? [Any] {
-                for value in array {
-                    if let value = convert(any: value) {
-                        let item = URLQueryItem(name: $0, value: value)
-                        queryItems.append(item)
-                    }
-                }
-            }
-        }
-        return queryItems
-    }
-
-    fileprivate func request(with urlString:String, parameters params:[String:Any], timeoutList:[Int], method:RequestMethod, reqObj: FunasyncWebRequest, completion:((Data?,Int,Error?)->Void)?)
-    {
-        requestCore(with: urlString, parameters: params, timeoutList: timeoutList, method: method, reqObj: reqObj, success: {
-            if let completion = completion {
-                completion($0, $1, nil)
-            }
-        }) {
-            if let competion = completion {
-                competion(nil, $1, $0)
-            }
-        }
-    }
-    
-    private func requestCore(with urlString:String, parameters params:[String:Any], timeoutList:[Int], method:RequestMethod, reqObj: FunasyncWebRequest? = nil, success:((Data?,Int)->Void)?, failure:((Error?,Int)->Void)?) {
-        guard var reqUrl = URLComponents(string: urlString) else { return }
-        var queryItems = reqUrl.queryItems ?? []
-        queryItems += getQueryItems(from: params)
-        reqUrl.queryItems = queryItems
-        
-        guard let reqString = reqUrl.string, let url = URL(string: reqString) else { return }
-        requestCore(with: url, timeoutList: timeoutList, timeoutIndex: 0, method: method, reqObj: reqObj, success: success, failure:failure)
-    }
-    
-    private var reqObjHolder: [FunasyncWebRequest] = []
-    private func requestCore(with url:URL, timeoutList:[Int], timeoutIndex: Int, method:RequestMethod, reqObj: FunasyncWebRequest? = nil, success:((Data?, Int)->Void)?, failure:((Error?,Int)->Void)?) {
-        var urlReq = URLRequest(url: url, cachePolicy: .useProtocolCachePolicy, timeoutInterval: 30)
-        urlReq.httpMethod = method.toString()
-        urlReq.timeoutInterval = TimeInterval(timeoutList[timeoutIndex])
-        
-        if let reqObj = reqObj {
-            if !reqObjHolder.contains(reqObj) {
-                reqObjHolder.append(reqObj)
-            }
-        }
-
-        let task = URLSession.shared.dataTask(with: urlReq) { [weak self] (data, response, error) in
-            
-            guard let self = self else { return }
-            var statusCode: Int = 0
-            if let response = response as? HTTPURLResponse {
-                statusCode = response.statusCode
-            }
-            
-            let hasError = error != nil || statusCode >= 400
-            if hasError {
-                if let nsError = error as NSError? {
-                    if statusCode == 0 {
-                        statusCode = nsError.code
-                    }
-                    if nsError.code == NSURLErrorTimedOut && timeoutIndex < timeoutList.count - 1 {
-                        self.requestCore(with: url, timeoutList: timeoutList, timeoutIndex: timeoutIndex + 1, method: method, success: success, failure: failure)
-                        return
-                    }
-                }
-            }
-            
-            if hasError {
-                if let failure = failure {
-                    failure(error, statusCode)
-                }
-                return
-            }
-            
-            if let success = success {
-                success(data, statusCode)
-            }
-        }
-        task.resume()
-    }
-
-}
-
-
-public class FunasyncWebRequest: NSObject, FunAsyncBaseProtocol {
+public class FunasyncWebRequest: NSObject {
     var data: Data?
     var statusCode: Int = 0
     var error: Error?
+    let urlSession: URLSession
     
     var nextSequence: SubsequenceProtocol?
     var subscribCloure: ((Any?)->Void)?
@@ -145,7 +20,8 @@ public class FunasyncWebRequest: NSObject, FunAsyncBaseProtocol {
     
     var queue: DispatchQueue?
     
-    public init(urlString:String, parameters params:[String:Any] = [:], timeoutList:[Int] = [3, 6, 10, 30], method:RequestMethod = .post) {
+    public init(urlSession: URLSession = URLSession.shared, urlString:String, parameters params:[String:Any] = [:], timeoutList:[Int] = [3, 6, 10, 30], method:RequestMethod = .post) {
+        self.urlSession = urlSession
         super.init()
         self.doHttpRequest(urlString: urlString, parameters: params, timeoutList: timeoutList, method: method)
     }
@@ -172,8 +48,10 @@ public class FunasyncWebRequest: NSObject, FunAsyncBaseProtocol {
         return wrss
     }
     
-    public func subscribe(closure: @escaping (Any?)->Void) {
-        subscribCloure = closure
+    public func subscribe<T>(closure: @escaping (T?)->Void) {
+        subscribCloure = {
+            closure($0 as? T)
+        }
         guard let data = data else {
             if let closure = catchClosure, let error = error {
                 closure(error)
@@ -188,25 +66,35 @@ public class FunasyncWebRequest: NSObject, FunAsyncBaseProtocol {
         else {
             subscribedData = data
         }
-        if let queue = queue {
-            queue.async { [weak self] in
-                guard let self = self else { return }
-                if let subscribedData = subscribedData {
+        if let subscribedData = subscribedData as? T {
+            if let queue = queue {
+                queue.async { [weak self] in
+                    guard let _ = self else { return }
                     closure(subscribedData)
                 }
-                else if let closure = self.catchClosure {
-                    let error = NSError(domain: "funasync.webrequest.dataerror", code: -1, userInfo: nil)
-                    closure(error)
-                    
-                }
+            }
+            else {
+                closure(subscribedData)
             }
         }
         else {
-            closure(subscribedData)
+            let doCatch = { [weak self] in
+                guard let self = self else { return }
+                if let closure = self.catchClosure {
+                    let error = NSError(domain: "funasync.webrequest.dataerror", code: -1, userInfo: nil)
+                    closure(error)
+                }
+            }
+            if let queue = queue {
+                queue.async(execute: doCatch)
+            }
+            else {
+                doCatch()
+            }
         }
     }
     
-    public func catchError(closure: @escaping (Error?) -> Void) -> FunAsyncBaseProtocol {
+    public func catchError(closure: @escaping (Error?) -> Void) -> FunasyncWebRequest {
         catchClosure = closure
         
         if let error = error {
@@ -215,14 +103,14 @@ public class FunasyncWebRequest: NSObject, FunAsyncBaseProtocol {
         return self
     }
     
-    public func observe(on queue: DispatchQueue) ->FunAsyncBaseProtocol {
+    public func observe(on queue: DispatchQueue) ->FunasyncWebRequest {
         self.queue = queue
         return self
     }
 
     private func doHttpRequest(urlString:String, parameters params:[String:Any], timeoutList:[Int], method:RequestMethod)
     {
-        HttpClient.shared.request(with: urlString, parameters: params, timeoutList: timeoutList, method: method, reqObj: self) { [weak self] (data, statusCode, error) in
+        HttpClient.shared.request(urlSession: urlSession, urlString: urlString, parameters: params, timeoutList: timeoutList, method: method, reqObj: self) { [weak self] (data, statusCode, error) in
             guard let self = self else { return }
             self.data = data
             self.statusCode = statusCode
@@ -251,7 +139,7 @@ public class FunasyncWebRequest: NSObject, FunAsyncBaseProtocol {
             return wrss
         }
         
-        public func subscribe(closure: @escaping (Any?)->Void) {
+        public func subscribe(closure: @escaping (DST?)->Void) {
             let _ = webReq.subscribe(closure: closure)
         }
         

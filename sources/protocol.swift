@@ -8,12 +8,6 @@
 
 import Foundation
 
-public protocol FunAsyncBaseProtocol {
-    func subscribe(closure: @escaping (Any?)->Void)
-    func catchError(closure: @escaping (Error?)->Void) ->FunAsyncBaseProtocol
-    func observe(on queue:DispatchQueue) -> FunAsyncBaseProtocol
-}
-
 public protocol SubsequenceProtocol {
     func process(data: Any) -> Any?
 }
