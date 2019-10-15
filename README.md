@@ -11,11 +11,11 @@ Fun(tional)Async(hronous) is a Swift project to simplify asynchronous programmin
 ## What it is going to be like
 1. Web API query asyncronously with functional
 ```swift
-FunasyncWebRequest(urlString: "http://test.123.com", parameters: ["test": 1], timeoutList: [3,6,30], method: .post)
+URLSession.shared.dataTask(urlString: "http://validate.jsontest.com/", params: ["json":"{\"key\":\"value\"}"])
 .jsonResponse() // general map for parsing response into JSON
-.map(clousre: { (jsonResponse) -> Int? in // process the JSON dictionary to get the target data
+.map(clousre: { (jsonResponse) -> Bool? in // process the JSON dictionary to get the target data
     guard let dict = jsonResponse as? [String:Any] else { return nil }
-    return dict["statusCode"] as? Int
+    return dict["validate"] as? Bool
 })
 .catchError { (error) in
     // deal with the error
@@ -23,8 +23,8 @@ FunasyncWebRequest(urlString: "http://test.123.com", parameters: ["test": 1], ti
 }
 .observe(on: DispatchQueue.main) // set the target dispatch queue to main queue
 .subscribe {
-    guard let statusCode = $0 as? Int else { return }
-    if statusCode == 0 {
-        print("operation success with status code is 0")
+    if let validate = $0, validate {
+        print("Yeah")
     }
-}```
+}
+```
