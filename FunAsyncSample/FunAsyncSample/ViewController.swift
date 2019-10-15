@@ -15,11 +15,11 @@ class ViewController: UIViewController {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
         
-        FunasyncWebRequest(urlString: "https://api.github.com/repos/alexlin1976/FunAsync", parameters: [:], timeoutList: [3,6,30], method: .post)
+        URLSession.shared.dataTask(urlString: "http://validate.jsontest.com/", params: ["json":"{\"key\":\"value\"}"])
         .jsonResponse() // general map for parsing response into JSON
-        .map(clousre: { (jsonResponse) -> Int? in // process the JSON dictionary to get the target data
+        .map(clousre: { (jsonResponse) -> Bool? in // process the JSON dictionary to get the target data
             guard let dict = jsonResponse as? [String:Any] else { return nil }
-            return dict["watchers_count"] as? Int
+            return dict["validate"] as? Bool
         })
         .catchError { (error) in
             // deal with the error
@@ -27,9 +27,8 @@ class ViewController: UIViewController {
         }
         .observe(on: DispatchQueue.main) // set the target dispatch queue to main queue
         .subscribe {
-            guard let watchersCount = $0 as? Int else { return }
-            if watchersCount == 0 {
-                print("Ahhhhh....")
+            if let validate = $0, validate {
+                print("Yeah")
             }
         }
     }
