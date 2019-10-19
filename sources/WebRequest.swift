@@ -8,7 +8,7 @@
 
 import UIKit
 
-public class FunasyncWebRequest: NSObject {
+public class WebRequest: NSObject {
     var data: Data?
     var statusCode: Int = 0
     var error: Error?
@@ -26,22 +26,22 @@ public class FunasyncWebRequest: NSObject {
         self.doHttpRequest(urlString: urlString, parameters: params, timeoutList: timeoutList, method: method)
     }
     
-    public func map<T>(closure: @escaping (Data)->T?) -> Subsequence<Data,T> {
-        let wrss = Subsequence(webReq: self, closure: closure)
+    public func map<T>(closure: @escaping (Data)->T?) -> Subsequence<WebRequest,Data,T> {
+        let wrss = Subsequence(req: self, closure: closure)
         nextSequence = wrss
         return wrss
     }
     
-    public func jsonResponse() -> Subsequence<Data,Any> {
-        let wrss = Subsequence<Data,Any>(webReq: self) { (data) -> Any? in
+    public func jsonResponse() -> Subsequence<WebRequest,Data,Any> {
+        let wrss = Subsequence<WebRequest,Data,Any>(req: self) { (data) -> Any? in
             return try? JSONSerialization.jsonObject(with: data, options: [])
         }
         nextSequence = wrss
         return wrss
     }
     
-    public func decode<T>(type:T.Type) -> Subsequence<Data,T> where T : Decodable {
-        let wrss = Subsequence<Data,T>(webReq: self) { (data) -> T? in
+    public func decode<T>(type:T.Type) -> Subsequence<WebRequest,Data,T> where T : Decodable {
+        let wrss = Subsequence<WebRequest,Data,T>(req: self) { (data) -> T? in
             return try? JSONDecoder().decode(type, from: data)
         }
         nextSequence = wrss
@@ -94,7 +94,7 @@ public class FunasyncWebRequest: NSObject {
         }
     }
     
-    public func catchError(closure: @escaping (Error?) -> Void) -> FunasyncWebRequest {
+    public func catchError(closure: @escaping (Error?) -> Void) -> WebRequest {
         catchClosure = closure
         
         if let error = error {
@@ -103,7 +103,7 @@ public class FunasyncWebRequest: NSObject {
         return self
     }
     
-    public func observe(on queue: DispatchQueue) ->FunasyncWebRequest {
+    public func observe(on queue: DispatchQueue) ->WebRequest {
         self.queue = queue
         return self
     }
@@ -121,45 +121,21 @@ public class FunasyncWebRequest: NSObject {
             }
         }
     }
-        
-    public class Subsequence<SRC,DST> : SubsequenceProtocol {
-        var mapClosure: (SRC)->DST?
-        let webReq: FunasyncWebRequest
-        
-        var nextSequence: SubsequenceProtocol?
-        
-        public init(webReq: FunasyncWebRequest, closure: @escaping (SRC)->DST?) {
-            self.webReq = webReq
-            self.mapClosure = closure
-        }
-        
-        public func map<T>(clousre: @escaping (DST)->T?) -> Subsequence<DST,T> {
-            let wrss = Subsequence<DST,T>(webReq: webReq, closure: clousre)
-            nextSequence = wrss
-            return wrss
-        }
-        
-        public func subscribe(closure: @escaping (DST?)->Void) {
-            let _ = webReq.subscribe(closure: closure)
-        }
-        
-        public func process(data: Any) -> Any? {
-            guard let srcData = data as? SRC else { return nil }
-            let result = mapClosure(srcData)
-            if let nextSequence = nextSequence, let result = result {
-                return nextSequence.process(data: result)
-            }
-            return result
-        }
-        
-        public func observe(on queue:DispatchQueue) -> Subsequence {
-            let _ = webReq.observe(on: queue)
-            return self
-        }
-        
-        public func catchError(closure: @escaping (Error?)->Void) -> Subsequence {
-            let _ = webReq.catchError(closure: closure)
-            return self
-        }
+}
+
+
+public extension Subsequence where REQ:WebRequest {
+    func subscribe(closure: @escaping (DST?)->Void) {
+        let _ = request.subscribe(closure: closure)
+    }
+    
+    func observe(on queue:DispatchQueue) -> Subsequence {
+        let _ = request.observe(on: queue)
+        return self
+    }
+    
+    func catchError(closure: @escaping (Error?)->Void) -> Subsequence {
+        let _ = request.catchError(closure: closure)
+        return self
     }
 }

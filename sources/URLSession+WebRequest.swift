@@ -9,7 +9,7 @@
 import Foundation
 
 public extension URLSession {
-    func dataTask(urlString:String, params:[String:Any] = [:], timeoutList:[Int] = [3, 6, 10, 30], method:RequestMethod = .post) -> FunasyncWebRequest {
-        return FunasyncWebRequest(urlSession: self, urlString: urlString, parameters: params, timeoutList: timeoutList, method: method)
+    func dataTask(urlString:String, params:[String:Any] = [:], timeoutList:[Int] = [3, 6, 10, 30], method:RequestMethod = .post) -> WebRequest {
+        return WebRequest(urlSession: self, urlString: urlString, parameters: params, timeoutList: timeoutList, method: method)
     }
 }

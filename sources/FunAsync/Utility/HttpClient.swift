@@ -61,7 +61,7 @@ class HttpClient {
         return queryItems
     }
 
-    func request(urlSession: URLSession = URLSession.shared, urlString:String, parameters params:[String:Any], timeoutList:[Int], method:RequestMethod, reqObj: FunasyncWebRequest, completion:((Data?,Int,Error?)->Void)?)
+    func request(urlSession: URLSession = URLSession.shared, urlString:String, parameters params:[String:Any], timeoutList:[Int], method:RequestMethod, reqObj: WebRequest, completion:((Data?,Int,Error?)->Void)?)
     {
         requestCore(urlSession: urlSession, urlString: urlString, parameters: params, timeoutList: timeoutList, method: method, reqObj: reqObj, success: {
             if let completion = completion {
@@ -74,7 +74,7 @@ class HttpClient {
         }
     }
     
-    private func requestCore(urlSession: URLSession, urlString:String, parameters params:[String:Any], timeoutList:[Int], method:RequestMethod, reqObj: FunasyncWebRequest? = nil, success:((Data?,Int)->Void)?, failure:((Error?,Int)->Void)?) {
+    private func requestCore(urlSession: URLSession, urlString:String, parameters params:[String:Any], timeoutList:[Int], method:RequestMethod, reqObj: WebRequest? = nil, success:((Data?,Int)->Void)?, failure:((Error?,Int)->Void)?) {
         guard var reqUrl = URLComponents(string: urlString) else { return }
         var queryItems = reqUrl.queryItems ?? []
         queryItems += getQueryItems(from: params)
@@ -84,8 +84,8 @@ class HttpClient {
         requestCore(urlSession: urlSession, url: url, timeoutList: timeoutList, timeoutIndex: 0, method: method, reqObj: reqObj, success: success, failure:failure)
     }
     
-    private var reqObjHolder: [FunasyncWebRequest] = []
-    private func requestCore(urlSession: URLSession, url:URL, timeoutList:[Int], timeoutIndex: Int, method:RequestMethod, reqObj: FunasyncWebRequest? = nil, success:((Data?, Int)->Void)?, failure:((Error?,Int)->Void)?) {
+    private var reqObjHolder: [WebRequest] = []
+    private func requestCore(urlSession: URLSession, url:URL, timeoutList:[Int], timeoutIndex: Int, method:RequestMethod, reqObj: WebRequest? = nil, success:((Data?, Int)->Void)?, failure:((Error?,Int)->Void)?) {
         var urlReq = URLRequest(url: url, cachePolicy: .useProtocolCachePolicy, timeoutInterval: 30)
         urlReq.httpMethod = method.toString()
         urlReq.timeoutInterval = TimeInterval(timeoutList[timeoutIndex])

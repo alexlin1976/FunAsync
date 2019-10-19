@@ -17,10 +17,10 @@ class ViewController: UIViewController {
         
         URLSession.shared.dataTask(urlString: "http://validate.jsontest.com/", params: ["json":"{\"key\":\"value\"}"])
         .jsonResponse() // general map for parsing response into JSON
-        .map(clousre: { (jsonResponse) -> Bool? in // process the JSON dictionary to get the target data
+        .map { (jsonResponse) -> Bool? in // process the JSON dictionary to get the target data
             guard let dict = jsonResponse as? [String:Any] else { return nil }
             return dict["validate"] as? Bool
-        })
+        }
         .catchError { (error) in
             // deal with the error
             print(String(describing: error))
@@ -31,8 +31,19 @@ class ViewController: UIViewController {
                 print("Yeah")
             }
         }
+        
+        NotificationCenter.default.requestNotification(notification2Receive: "testNotification")
+        .map { (notification) -> String? in
+            guard let userInfo = notification.userInfo else { return nil }
+            guard let ret = userInfo["info"] as? String else { return nil }
+            return ret
+        }
+        .subscribe { (info) in
+            guard let info = info else { return }
+            print("received info from notification: \(info)")
+        }
+        
+        NotificationCenter.default.post(name: NSNotification.Name("testNotification"), object: nil, userInfo: ["info": "test1"])
     }
-
-
 }
 
