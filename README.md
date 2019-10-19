@@ -28,3 +28,16 @@ URLSession.shared.dataTask(urlString: "http://validate.jsontest.com/", params: [
     }
 }
 ```
+1. Wait and receive notification center notifications with functional
+```swift
+NotificationCenter.default.requestNotification(notification2Receive: "testNotification")
+.map { (notification) -> String? in
+    guard let userInfo = notification.userInfo else { return nil }
+    guard let ret = userInfo["info"] as? String else { return nil }
+    return ret
+}
+.subscribe { (info) in
+    guard let info = info else { return }
+    print("received info from notification: \(info)")
+}
+```
