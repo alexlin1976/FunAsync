@@ -48,7 +48,11 @@ public class WebRequest: NSObject {
         return wrss
     }
     
-    public func subscribe<T>(closure: @escaping (T?)->Void) {
+    public func subscribe(closure: @escaping (Data?)->Void) {
+        _subscribe(closure: closure)
+    }
+    
+    func _subscribe<T>(closure: @escaping (T?)->Void) {
         subscribCloure = {
             closure($0 as? T)
         }
@@ -117,7 +121,7 @@ public class WebRequest: NSObject {
             self.error = error ?? NSError(domain: NSURLErrorDomain, code: statusCode, userInfo: nil)
             
             if let closure = self.subscribCloure {
-                self.subscribe(closure: closure)
+                self._subscribe(closure: closure)
             }
         }
     }
@@ -126,7 +130,7 @@ public class WebRequest: NSObject {
 
 public extension Subsequence where REQ:WebRequest {
     func subscribe(closure: @escaping (DST?)->Void) {
-        let _ = request.subscribe(closure: closure)
+        let _ = request._subscribe(closure: closure)
     }
     
     func observe(on queue:DispatchQueue) -> Subsequence {

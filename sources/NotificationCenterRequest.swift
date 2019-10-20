@@ -26,7 +26,7 @@ public class NotificationCenterRequest {
             guard let self = self else { return }
             self.lastNotification = notification
             if let closure = self.subscribCloure {
-                self.subscribe(closure: closure)
+                self._subscribe(closure: closure)
             }
         }
     }
@@ -36,8 +36,12 @@ public class NotificationCenterRequest {
         nextSequence = wrss
         return wrss
     }
+    
+    public func subscribe(closure: @escaping (Notification?)->Void) {
+        _subscribe(closure: closure)
+    }
 
-    public func subscribe<T>(closure: @escaping (T?)->Void) {
+    func _subscribe<T>(closure: @escaping (T?)->Void) {
         subscribCloure = {
             closure($0 as? T)
         }
@@ -91,7 +95,7 @@ public class NotificationCenterRequest {
 
 public extension Subsequence where REQ:NotificationCenterRequest {
     func subscribe(closure: @escaping (DST?)->Void) {
-        let _ = request.subscribe(closure: closure)
+        let _ = request._subscribe(closure: closure)
     }
     
     func observe(on queue:DispatchQueue) -> Subsequence {
