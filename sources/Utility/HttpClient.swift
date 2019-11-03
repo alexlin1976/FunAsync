@@ -34,6 +34,9 @@ class HttpClient {
         if let value = value as? String {
             return value
         }
+        else if let number = value as? NSNumber {
+            return number.stringValue
+        }
         else if isNumeric(value) {
             return "\(value)"
         }
@@ -57,7 +60,14 @@ class HttpClient {
                     }
                 }
             }
-        }
+            else if let set = $1 as? NSSet {
+                for value in set.allObjects {
+                    if let value = convert(any: value) {
+                        let item = URLQueryItem(name: $0, value: value)
+                        queryItems.append(item)
+                    }
+                }
+            }        }
         return queryItems
     }
 
