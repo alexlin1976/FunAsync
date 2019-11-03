@@ -84,20 +84,13 @@ class HttpClient {
         requestCore(urlSession: urlSession, url: url, timeoutList: timeoutList, timeoutIndex: 0, method: method, reqObj: reqObj, success: success, failure:failure)
     }
     
-    private var reqObjHolder: [WebRequest] = []
     private func requestCore(urlSession: URLSession, url:URL, timeoutList:[Int], timeoutIndex: Int, method:RequestMethod, reqObj: WebRequest? = nil, success:((Data?, Int)->Void)?, failure:((Error?,Int)->Void)?) {
         var urlReq = URLRequest(url: url, cachePolicy: .useProtocolCachePolicy, timeoutInterval: 30)
         urlReq.httpMethod = method.toString()
         urlReq.timeoutInterval = TimeInterval(timeoutList[timeoutIndex])
         
-        if let reqObj = reqObj {
-            if !reqObjHolder.contains(reqObj) {
-                reqObjHolder.append(reqObj)
-            }
-        }
-
         let task = urlSession.dataTask(with: urlReq) { [weak self] (data, response, error) in
-            
+            let _ = reqObj  // retain the request object in closure
             guard let self = self else { return }
             var statusCode: Int = 0
             if let response = response as? HTTPURLResponse {
