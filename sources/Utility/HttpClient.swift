@@ -22,6 +22,24 @@ public enum RequestMethod: Int {
     }
 }
 
+extension String {
+    func percentEncoding() -> String? {
+        struct allowed {
+            static var characterSet: CharacterSet?
+        }
+        if allowed.characterSet == nil {
+            allowed.characterSet = CharacterSet.urlQueryAllowed
+            allowed.characterSet?.remove(charactersIn: ":/?&=;+!@#$()',*")
+        }
+        if let allowedCharacterSet = allowed.characterSet {
+            return addingPercentEncoding(withAllowedCharacters: allowedCharacterSet)
+        }
+        else {
+            return nil
+        }
+    }
+}
+
 class HttpClient {
     public static let shared: HttpClient = HttpClient()
     
@@ -32,7 +50,7 @@ class HttpClient {
     
     private func convert(any value:Any) -> String? {
         if let value = value as? String {
-            return value
+            return value.percentEncoding()
         }
         else if let number = value as? NSNumber {
             return number.stringValue
@@ -86,11 +104,11 @@ class HttpClient {
     
     private func requestCore(urlSession: URLSession, urlString:String, parameters params:[String:Any], timeoutList:[Int], method:RequestMethod, reqObj: WebRequest? = nil, success:((Data?,Int)->Void)?, failure:((Error?,Int)->Void)?) {
         guard var reqUrl = URLComponents(string: urlString) else { return }
-        var queryItems = reqUrl.queryItems ?? []
+        var queryItems = reqUrl.percentEncodedQueryItems ?? []
         queryItems += getQueryItems(from: params)
-        reqUrl.queryItems = queryItems
+        reqUrl.percentEncodedQueryItems = queryItems
         
-        guard let reqString = reqUrl.string, let url = URL(string: reqString) else { return }
+        guard let url = reqUrl.url else { return }
         requestCore(urlSession: urlSession, url: url, timeoutList: timeoutList, timeoutIndex: 0, method: method, reqObj: reqObj, success: success, failure:failure)
     }
     
