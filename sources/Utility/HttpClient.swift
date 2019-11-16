@@ -64,29 +64,30 @@ class HttpClient {
     }
 
     private func getQueryItems(from params:[String:Any]) -> [URLQueryItem] {
-        var queryItems: [URLQueryItem] = []
-        let _ = params.map {
-            if let value = convert(any: $1) {
-                let item = URLQueryItem(name: $0, value: value)
+        return params.reduce([]) { (result, current) -> [URLQueryItem] in
+            var queryItems = result
+            if let value = convert(any: current.value) {
+                let item = URLQueryItem(name: current.key, value: value)
                 queryItems.append(item)
             }
-            else if let array = $1 as? [Any] {
+            else if let array = current.value as? [Any] {
                 for value in array {
                     if let value = convert(any: value) {
-                        let item = URLQueryItem(name: $0, value: value)
+                        let item = URLQueryItem(name: current.key, value: value)
                         queryItems.append(item)
                     }
                 }
             }
-            else if let set = $1 as? NSSet {
+            else if let set = current.value as? NSSet {
                 for value in set.allObjects {
                     if let value = convert(any: value) {
-                        let item = URLQueryItem(name: $0, value: value)
+                        let item = URLQueryItem(name: current.key, value: value)
                         queryItems.append(item)
                     }
                 }
-            }        }
-        return queryItems
+            }
+            return queryItems
+        }
     }
 
     func request(urlSession: URLSession = URLSession.shared, urlString:String, parameters params:[String:Any], timeoutList:[Int], method:RequestMethod, reqObj: WebRequest, completion:((Data?,Int,Error?)->Void)?)
