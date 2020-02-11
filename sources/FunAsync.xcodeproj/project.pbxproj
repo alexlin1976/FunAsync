@@ -28,6 +28,7 @@
 		19F9035B235B3A620063EE65 /* Subsequence.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Subsequence.swift; sourceTree = SOURCE_ROOT; };
 		19F90361235B3B2C0063EE65 /* URLSession+WebRequest.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "URLSession+WebRequest.swift"; sourceTree = "<group>"; };
 		19F90362235B3B2C0063EE65 /* NotificationCenter+Request.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "NotificationCenter+Request.swift"; sourceTree = "<group>"; };
+		773D5A8723F2A60A001D895D /* Package.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Package.swift; path = ../Package.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -44,6 +45,7 @@
 		1970FB0E23536FDD006A78D2 = {
 			isa = PBXGroup;
 			children = (
+				773D5A8723F2A60A001D895D /* Package.swift */,
 				1970FB1A23536FDD006A78D2 /* FunAsync */,
 				1970FB1923536FDD006A78D2 /* Products */,
 			);
